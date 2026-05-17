@@ -21,7 +21,7 @@ np.random.seed(42)
 
 # ── STEP 1: Load Dataset ──────────────────────────────────────
 print("Loading dataset...")
-df = pd.read_csv("traffic_accidents_1000.csv")
+df = pd.read_csv("traffic_accidents.csv")
 print(f"Rows: {len(df)}  |  Columns: {len(df.columns)}")
 
 # ── STEP 2: Create Risk Level Target (same as your code) ─────
