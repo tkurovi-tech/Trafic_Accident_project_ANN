@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Model Info — ANN Risk Predictor{% endblock %}
+
+{% block head %}
+<style>
+  .arch{background:#f8faff;border:2px solid #eaf4fb;border-radius:12px;padding:24px;text-align:center}
+  .lrow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0}
+  .layer{background:#fff;border-radius:9px;padding:11px 16px;
+         box-shadow:0 2px 10px rgba(0,0,0,.08);min-width:105px;text-align:center;border:2px solid transparent}
+  .layer.inp{border-color:#3498db}.layer.hid{border-color:#9b59b6}.layer.out{border-color:#e74c3c}
+  .lname{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#7f8c8d}
+  .lnum{font-size:1.35rem;font-weight:800;color:#1a252f}
+  .lact{font-size:.7rem;margin-top:2px;font-weight:600}
+  .relu{color:#9b59b6}.softmax{color:#e74c3c}.inp-c{color:#3498db}
+  .arr{font-size:1.3rem;color:#2980b9;padding:0 4px}
+
+  .cm-wrap{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:3px;max-width:380px;margin:0 auto}
+  .cm-hdr{background:#1a252f;color:#fff;padding:8px;border-radius:4px;text-align:center;
+          font-size:.72rem;font-weight:700}
+  .cm-lbl{background:#eaf4fb;color:#1a252f;padding:8px;border-radius:4px;
+          font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .cm-cell{padding:14px 8px;border-radius:6px;text-align:center}
+  .cm-diag{background:#dcfce7}.cm-off{background:#fee2e2}
+  .cm-cell .n{font-size:1.3rem;font-weight:800}
+  .cm-cell.cm-diag .n{color:#15803d}.cm-cell.cm-off .n{color:#b91c1c}
+
+  table{width:100%;border-collapse:collapse;font-size:.83rem}
+  th{background:#1a252f;color:#fff;padding:9px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #eaf4fb}
+  tr:nth-child(even) td{background:#f8faff}
+  td.v{font-weight:700;color:#2980b9}
+
+  .ci{background:#eaf4fb;border-radius:9px;padding:13px}
+  .cw{background:#2980b9;color:#fff;border-radius:4px;padding:2px 7px;
+      font-size:.69rem;font-weight:700;display:inline-block;margin-bottom:5px}
+  .ct{font-size:.85rem;font-weight:700;color:#1a252f;margin-bottom:3px}
+  .cd{font-size:.77rem;color:#7f8c8d;line-height:1.5}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="card">
+    <div class="card-title">🧠 ANN Model Information</div>
+    <p style="font-size:.84rem;color:#7f8c8d">Architecture, training results, loss curve, confusion matrix, and all course concepts applied.</p>
+  </div>
+
+  <!-- Accuracy stats -->
+  <div class="g3" style="margin-bottom:20px">
+    <div class="stat"><div class="v" style="color:#27ae60">{{ meta.train_acc }}%</div><div class="l">Train Accuracy</div></div>
+    <div class="stat"><div class="v" style="color:#2980b9">{{ meta.test_acc }}%</div><div class="l">Test Accuracy (ANN)</div></div>
+    <div class="stat"><div class="v" style="color:#7f8c8d">{{ meta.epochs }}</div><div class="l">Epochs Trained</div></div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">🏗️ Network Architecture — Week 7 (Multi-Layer ANN)</div>
+    <div class="arch">
+      <div class="lrow">
+        <div class="layer inp">
+          <div class="lname">Input</div>
+          <div class="lnum">13</div>
+          <div class="lact inp-c">Features</div>
+        </div>
+        <div class="arr">→</div>
+        <div class="layer hid">
+          <div class="lname">Hidden 1</div>
+          <div class="lnum">64</div>
+          <div class="lact relu">ReLU</div>
+        </div>
+        <div class="arr">→</div>
+        <div class="layer hid">
+          <div class="lname">Hidden 2</div>
+          <div class="lnum">32</div>
+          <div class="lact relu">ReLU</div>
+        </div>
+        <div class="arr">→</div>
+        <div class="layer out">
+          <div class="lname">Output</div>
+          <div class="lnum">3</div>
+          <div class="lact softmax">Softmax</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:.78rem;color:#7f8c8d">
+        Output classes: &nbsp;
+        <span class="badge badge-low">🟢 Low</span> &nbsp;
+        <span class="badge badge-med">🟡 Medium</span> &nbsp;
+        <span class="badge badge-high">🔴 High</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loss curve + Confusion matrix -->
+  <div class="g2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-title">📉 Training Loss Curve — Week 5</div>
+      <canvas id="lossChart" height="230"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Confusion Matrix (3 Classes)</div>
+      <div class="cm-wrap">
+        <div></div>
+        <div class="cm-hdr">Pred: High</div>
+        <div class="cm-hdr">Pred: Low</div>
+        <div class="cm-hdr">Pred: Med</div>
+        {% for i in range(3) %}
+        <div class="cm-lbl">{{ ['High','Low','Med'][i] }}</div>
+        {% for j in range(3) %}
+        <div class="cm-cell {{ 'cm-diag' if i==j else 'cm-off' }}">
+          <div class="n">{{ meta.cm[i][j] }}</div>
+        </div>
+        {% endfor %}
+        {% endfor %}
+      </div>
+      <p style="text-align:center;font-size:.72rem;color:#7f8c8d;margin-top:10px">Green = correct predictions &nbsp;|&nbsp; Red = errors</p>
+    </div>
+  </div>
+
+  <!-- Model comparison chart -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">📊 How Risk Level is Created (Your Original Logic)</div>
+    <div class="g3">
+      <div style="background:#f0fdf4;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:6px">➕</div>
+        <div style="font-weight:700;color:#15803d;margin-bottom:5px">injury_score (0–4)</div>
+        <div style="font-size:.78rem;color:#7f8c8d">NO INJURY=0, REPORTED=1, NON-INCAP=2, INCAP=3, FATAL=4</div>
+      </div>
+      <div style="background:#fefce8;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:6px">➕</div>
+        <div style="font-weight:700;color:#854d0e;margin-bottom:5px">damage_score (0–2)</div>
+        <div style="font-size:.78rem;color:#7f8c8d">$500 or less=0, $501-$1500=1, Over $1500=2</div>
+      </div>
+      <div style="background:#fef2f2;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:6px">🎯</div>
+        <div style="font-weight:700;color:#b91c1c;margin-bottom:5px">total_score → Risk Level</div>
+        <div style="font-size:.78rem;color:#7f8c8d">Score ≤1 = Low &nbsp;|&nbsp; 2–3 = Medium &nbsp;|&nbsp; ≥4 = High</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training parameters -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">⚙️ Training Configuration</div>
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>Hidden Layers</td><td class="v">64 → 32</td><td>Same as your code: Dense(64) → Dense(32)</td></tr>
+        <tr><td>Activation (Hidden)</td><td class="v">ReLU</td><td>f(x)=max(0,x) — fast, avoids vanishing gradient (Week 9)</td></tr>
+        <tr><td>Activation (Output)</td><td class="v">Softmax</td><td>Converts output to probability for 3 classes (Week 9)</td></tr>
+        <tr><td>Optimizer</td><td class="v">Adam</td><td>Same as your code — adaptive learning rate</td></tr>
+        <tr><td>Loss Function</td><td class="v">Cross-Entropy</td><td>Standard for multiclass classification (Week 5)</td></tr>
+        <tr><td>Batch Size</td><td class="v">32</td><td>Same as your code</td></tr>
+        <tr><td>L2 Regularization</td><td class="v">alpha=0.001</td><td>Replaces Dropout — prevents overfitting (Week 10)</td></tr>
+        <tr><td>Early Stopping</td><td class="v">patience=10</td><td>Same as your code — stops when val_loss stalls (Week 10)</td></tr>
+        <tr><td>Epochs Trained</td><td class="v">{{ meta.epochs }}</td><td>Stopped automatically by early stopping</td></tr>
+        <tr><td>Train/Test Split</td><td class="v">80% / 20%</td><td>Same as your code</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Course concepts -->
+  <div class="card">
+    <div class="card-title">📚 Course Concepts Applied</div>
+    <div class="g3">
+      <div class="ci"><div class="cw">Week 5</div><div class="ct">Loss Function</div>
+        <div class="cd">Cross-Entropy Loss for 3-class classification. Minimized during training via backpropagation.</div></div>
+      <div class="ci"><div class="cw">Week 6</div><div class="ct">Single Layer Network</div>
+        <div class="cd">Baseline network with one hidden layer (64 neurons) before adding the second layer.</div></div>
+      <div class="ci"><div class="cw">Week 7</div><div class="ct">Multi-Layer Network</div>
+        <div class="cd">Two hidden layers: Dense(64, ReLU) → Dense(32, ReLU) → Output(3, Softmax).</div></div>
+      <div class="ci"><div class="cw">Week 9</div><div class="ct">Activation Functions</div>
+        <div class="cd">ReLU in hidden layers. Softmax in output layer converts scores to Low/Medium/High probabilities.</div></div>
+      <div class="ci"><div class="cw">Week 10</div><div class="ct">Overfitting Prevention</div>
+        <div class="cd">L2 Regularization (alpha=0.001) replaces Dropout. Early Stopping with patience=10.</div></div>
+      <div class="ci"><div class="cw">Week 3</div><div class="ct">Multiclass Classification</div>
+        <div class="cd">3 output classes: Low / Medium / High Risk. Based on injury_score + damage_score from your code.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const loss = {{ meta.loss_curve | tojson }};
+const vals = {{ meta.val_scores | tojson }};
+new Chart(document.getElementById('lossChart'),{
+  type:'line',
+  data:{
+    labels: loss.map((_,i)=>i+1),
+    datasets:[
+      {label:'Train Loss',data:loss,borderColor:'#2980b9',
+       backgroundColor:'rgba(41,128,185,.1)',fill:true,tension:.4,pointRadius:0,borderWidth:2},
+      {label:'Val Loss',data:vals.map(v=>1-v),borderColor:'#e74c3c',
+       fill:false,tension:.4,pointRadius:0,borderWidth:2,borderDash:[5,3]}
+    ]
+  },
+  options:{plugins:{legend:{position:'top'}},
+    scales:{y:{beginAtZero:true},x:{title:{display:true,text:'Epoch'}}}}
+});
+</script>
+{% endblock %}

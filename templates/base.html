@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}ANN Risk Predictor{% endblock %}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#f0f4f8;color:#2c3e50}
+
+    nav{background:#1a252f;padding:0 30px;display:flex;align-items:center;
+        justify-content:space-between;height:62px;position:sticky;top:0;z-index:100;
+        box-shadow:0 2px 12px rgba(0,0,0,0.4)}
+    .brand{color:#fff;font-size:1.05rem;font-weight:700;text-decoration:none;
+           display:flex;align-items:center;gap:8px}
+    .nav-links{display:flex;gap:4px}
+    .nav-links a{color:rgba(255,255,255,.78);text-decoration:none;padding:7px 14px;
+        border-radius:7px;font-size:.87rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,.15);color:#fff}
+
+    .page{max-width:1180px;margin:0 auto;padding:32px 20px}
+
+    .card{background:#fff;border-radius:12px;
+          box-shadow:0 3px 14px rgba(0,0,0,.08);padding:24px;margin-bottom:22px}
+    .card-title{font-size:.93rem;font-weight:700;color:#1a252f;margin-bottom:13px;
+        padding-bottom:9px;border-bottom:2px solid #eaf4fb;
+        display:flex;align-items:center;gap:7px}
+
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+    .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+    .stat{background:#fff;border-radius:12px;padding:20px;text-align:center;
+          box-shadow:0 3px 14px rgba(0,0,0,.08)}
+    .stat .v{font-size:1.9rem;font-weight:800;color:#2980b9}
+    .stat .l{font-size:.78rem;color:#7f8c8d;margin-top:3px;font-weight:500}
+
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+    .badge-low   {background:#dcfce7;color:#15803d}
+    .badge-med   {background:#fef9c3;color:#854d0e}
+    .badge-high  {background:#fee2e2;color:#b91c1c}
+
+    footer{background:#1a252f;color:rgba(255,255,255,.55);text-align:center;
+           padding:16px;font-size:.78rem;margin-top:50px}
+    footer strong{color:rgba(255,255,255,.88)}
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span>⚠️</span> ANN Accident Risk Predictor</a>
+  <div class="nav-links">
+    <a href="/"           {% if request.path=='/' %}class="active"{% endif %}>🏠 Home</a>
+    <a href="/predict"    {% if request.path=='/predict' %}class="active"{% endif %}>🔮 Predict</a>
+    <a href="/dashboard"  {% if request.path=='/dashboard' %}class="active"{% endif %}>📊 Dashboard</a>
+    <a href="/model-info" {% if request.path=='/model-info' %}class="active"{% endif %}>🧠 Model Info</a>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<footer>
+  <strong>Traffic Accident Risk Prediction Using ANN</strong> &nbsp;|&nbsp;
+  ANN Lab &nbsp;|&nbsp; SZABIST &nbsp;|&nbsp; Sir Hassan Mujtaba
+</footer>
+</body>
+</html>

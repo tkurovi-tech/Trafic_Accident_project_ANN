@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Home — ANN Risk Predictor{% endblock %}
+
+{% block head %}
+<style>
+  .hero{background:linear-gradient(135deg,#1a252f,#2980b9);color:#fff;border-radius:14px;
+        padding:50px 40px;display:flex;align-items:center;justify-content:space-between;
+        gap:30px;margin-bottom:28px}
+  .hero h1{font-size:2.1rem;font-weight:800;margin-bottom:12px;line-height:1.2}
+  .hero h1 span{color:#7ecef4}
+  .hero p{font-size:.97rem;opacity:.85;max-width:490px;line-height:1.7}
+  .hero-icon{font-size:6rem;flex-shrink:0}
+  .btn-row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+  .btn{padding:11px 24px;border-radius:9px;font-weight:700;font-size:.88rem;
+       text-decoration:none;transition:all .2s;display:inline-block}
+  .btn-white{background:#fff;color:#1a252f}
+  .btn-white:hover{background:#e8f4fd;transform:translateY(-1px)}
+  .btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5)}
+  .btn-outline:hover{border-color:#fff}
+
+  .risk-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+  .risk-card{border-radius:12px;padding:22px;text-align:center;box-shadow:0 3px 14px rgba(0,0,0,.08)}
+  .risk-card.low {background:#f0fdf4;border:2px solid #86efac}
+  .risk-card.med {background:#fefce8;border:2px solid #fde047}
+  .risk-card.high{background:#fef2f2;border:2px solid #fca5a5}
+  .risk-card .ico{font-size:2.4rem;margin-bottom:8px}
+  .risk-card h3{font-size:1.05rem;font-weight:700;margin-bottom:6px}
+  .risk-card.low  h3{color:#15803d}
+  .risk-card.med  h3{color:#854d0e}
+  .risk-card.high h3{color:#b91c1c}
+  .risk-card p{font-size:.8rem;color:#7f8c8d;line-height:1.6}
+  .risk-card .count{font-size:1.6rem;font-weight:800;margin-top:8px}
+  .risk-card.low  .count{color:#15803d}
+  .risk-card.med  .count{color:#854d0e}
+  .risk-card.high .count{color:#b91c1c}
+
+  .pipe{display:flex;align-items:center;flex-wrap:wrap;gap:0;justify-content:center;margin:16px 0}
+  .ps{background:#eaf4fb;border-radius:8px;padding:9px 14px;font-size:.78rem;
+      font-weight:600;color:#1a252f;text-align:center;min-width:95px}
+  .pa{font-size:1.2rem;color:#2980b9;padding:0 3px}
+
+  .week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+  .wi{display:flex;align-items:flex-start;gap:8px;background:#eaf4fb;border-radius:8px;padding:9px}
+  .wk{background:#2980b9;color:#fff;border-radius:4px;padding:2px 7px;
+      font-size:.7rem;font-weight:700;flex-shrink:0}
+  .wt{font-size:.78rem;color:#1a252f;font-weight:500}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="hero">
+    <div>
+      <h1>Accident Risk<br><span>Level Prediction</span><br>Using ANN</h1>
+      <p>Enter crash details and our Artificial Neural Network predicts whether the accident risk is <strong>Low</strong>, <strong>Medium</strong>, or <strong>High</strong> — using 1,000 real Chicago crash records.</p>
+      <div class="btn-row">
+        <a href="/predict"   class="btn btn-white">🔮 Predict Risk Level</a>
+        <a href="/dashboard" class="btn btn-outline">📊 View Dashboard</a>
+      </div>
+    </div>
+    <div class="hero-icon">🚗⚠️</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="g4" style="margin-bottom:26px">
+    <div class="stat"><div class="v">1,000</div><div class="l">Crash Records</div></div>
+    <div class="stat"><div class="v">13</div><div class="l">Input Features</div></div>
+    <div class="stat"><div class="v">{{ meta.test_acc }}%</div><div class="l">Model Accuracy</div></div>
+    <div class="stat"><div class="v">3</div><div class="l">Risk Classes</div></div>
+  </div>
+
+  <!-- RISK CLASSES -->
+  <div class="risk-cards">
+    <div class="risk-card low">
+      <div class="ico">🟢</div>
+      <h3>Low Risk</h3>
+      <p>Minor or no injury. Property damage under $1,500. Low danger conditions.</p>
+      <div class="count">{{ meta.risk_dist.Low }}</div>
+      <div style="font-size:.75rem;color:#7f8c8d">records in dataset</div>
+    </div>
+    <div class="risk-card med">
+      <div class="ico">🟡</div>
+      <h3>Medium Risk</h3>
+      <p>Non-incapacitating injury or significant property damage.</p>
+      <div class="count">{{ meta.risk_dist.Medium }}</div>
+      <div style="font-size:.75rem;color:#7f8c8d">records in dataset</div>
+    </div>
+    <div class="risk-card high">
+      <div class="ico">🔴</div>
+      <h3>High Risk</h3>
+      <p>Incapacitating injury, fatal crash, or severe damage over $1,500.</p>
+      <div class="count">{{ meta.risk_dist.High }}</div>
+      <div style="font-size:.75rem;color:#7f8c8d">records in dataset</div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="card">
+    <div class="card-title">⚙️ How It Works</div>
+    <div class="pipe">
+      <div class="ps">📂 Load CSV</div><div class="pa">→</div>
+      <div class="ps">🎯 Create Risk Level</div><div class="pa">→</div>
+      <div class="ps">🧹 Preprocess</div><div class="pa">→</div>
+      <div class="ps">🔢 Encode</div><div class="pa">→</div>
+      <div class="ps">📏 Normalize</div><div class="pa">→</div>
+      <div class="ps">🧠 Train ANN</div><div class="pa">→</div>
+      <div class="ps">🔮 Predict</div>
+    </div>
+  </div>
+
+  <!-- CONCEPTS -->
+  <div class="card">
+    <div class="card-title">📚 Course Concepts (Week 1–10)</div>
+    <div class="week-grid">
+      <div class="wi"><span class="wk">Wk 1</span><span class="wt">Python & Jupyter</span></div>
+      <div class="wi"><span class="wk">Wk 2</span><span class="wt">Supervised Learning</span></div>
+      <div class="wi"><span class="wk">Wk 3</span><span class="wt">Multiclass Classification (3 classes)</span></div>
+      <div class="wi"><span class="wk">Wk 4</span><span class="wt">Logistic Regression Baseline</span></div>
+      <div class="wi"><span class="wk">Wk 5</span><span class="wt">Cross-Entropy Loss Function</span></div>
+      <div class="wi"><span class="wk">Wk 6</span><span class="wt">Single Layer Feed Forward Network</span></div>
+      <div class="wi"><span class="wk">Wk 7</span><span class="wt">Multi-Layer ANN (64→32→3)</span></div>
+      <div class="wi"><span class="wk">Wk 9</span><span class="wt">ReLU + Softmax Activation</span></div>
+      <div class="wi"><span class="wk">Wk 10</span><span class="wt">L2 Regularization + Early Stopping</span></div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

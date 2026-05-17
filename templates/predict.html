@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Predict — ANN Risk Predictor{% endblock %}
+
+{% block head %}
+<style>
+  .layout{display:grid;grid-template-columns:1fr 390px;gap:22px;align-items:start}
+  .fg{display:flex;flex-direction:column;gap:5px}
+  .fg label{font-size:.79rem;font-weight:700;color:#1a252f}
+  .fg select,.fg input{padding:9px 11px;border-radius:7px;border:1.5px solid #d1d5db;
+      font-size:.85rem;font-family:Arial,sans-serif;color:#2c3e50;background:#fafafa;transition:border .2s}
+  .fg select:focus,.fg input:focus{outline:none;border-color:#2980b9;background:#fff}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .sec{grid-column:1/-1;font-size:.73rem;font-weight:700;color:#2980b9;
+       text-transform:uppercase;letter-spacing:.05em;padding:5px 0 2px;
+       border-bottom:1px solid #eaf4fb;margin-top:4px}
+  .btn-pred{width:100%;padding:13px;border-radius:9px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,#1a252f,#2980b9);color:#fff;
+      font-size:.93rem;font-weight:700;margin-top:10px;font-family:Arial,sans-serif}
+  .btn-pred:hover{opacity:.9}
+  .btn-pred:disabled{opacity:.6;cursor:not-allowed}
+
+  /* Result panel */
+  .rpanel{background:#fff;border-radius:12px;box-shadow:0 3px 14px rgba(0,0,0,.08);
+          padding:24px;position:sticky;top:76px}
+  .waiting{text-align:center;padding:38px 15px;color:#7f8c8d}
+  .waiting .big{font-size:3.2rem;margin-bottom:9px}
+
+  .verdict{text-align:center;padding:20px 12px;border-radius:11px;margin-bottom:16px}
+  .v-low {background:#f0fdf4;border:2px solid #86efac}
+  .v-med {background:#fefce8;border:2px solid #fde047}
+  .v-high{background:#fef2f2;border:2px solid #fca5a5}
+  .v-ico{font-size:3.2rem;margin-bottom:6px}
+  .v-lbl{font-size:1.4rem;font-weight:800}
+  .lbl-low {color:#15803d}.lbl-med{color:#854d0e}.lbl-high{color:#b91c1c}
+  .v-conf{font-size:.83rem;color:#7f8c8d;margin-top:4px}
+
+  .prow{margin:7px 0}
+  .plbl{display:flex;justify-content:space-between;font-size:.79rem;font-weight:600;margin-bottom:4px}
+  .pbg{background:#e5e7eb;border-radius:99px;height:9px;overflow:hidden}
+  .pb{height:100%;border-radius:99px;transition:width .8s ease}
+  .pb-low{background:#27ae60}.pb-med{background:#f59e0b}.pb-high{background:#e74c3c}
+
+  .factors{margin-top:16px}
+  .f-title{font-size:.78rem;font-weight:700;color:#1a252f;margin-bottom:7px}
+  .fi{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:7px;
+      margin-bottom:5px;font-size:.79rem;font-weight:500}
+  .fi-r{background:#fee2e2;color:#b91c1c}
+  .fi-g{background:#dcfce7;color:#15803d}
+  .fi-y{background:#fef9c3;color:#854d0e}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-title">🔮 Predict Accident Risk Level</div>
+    <p style="font-size:.84rem;color:#7f8c8d">Enter the crash conditions below. The ANN will predict whether the risk is <strong>Low</strong>, <strong>Medium</strong>, or <strong>High</strong>.</p>
+  </div>
+
+  <div class="layout">
+
+    <!-- FORM -->
+    <div class="card">
+      <form id="pForm">
+        <div class="form-grid">
+
+          <div class="sec">🌤️ Environmental Conditions</div>
+
+          <div class="fg">
+            <label>🌦️ Weather Condition</label>
+            <select name="weather_condition">
+              {% for v in unique_vals['weather_condition'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>💡 Lighting Condition</label>
+            <select name="lighting_condition">
+              {% for v in unique_vals['lighting_condition'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>🛣️ Road Surface</label>
+            <select name="roadway_surface_cond">
+              {% for v in unique_vals['roadway_surface_cond'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>⚠️ Road Defect</label>
+            <select name="road_defect">
+              {% for v in unique_vals['road_defect'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+
+          <div class="sec">🚦 Road & Traffic</div>
+
+          <div class="fg">
+            <label>🛤️ Trafficway Type</label>
+            <select name="trafficway_type">
+              {% for v in unique_vals['trafficway_type'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>↗️ Road Alignment</label>
+            <select name="alignment">
+              {% for v in unique_vals['alignment'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>🚦 Traffic Control Device</label>
+            <select name="traffic_control_device">
+              {% for v in unique_vals['traffic_control_device'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>💥 First Crash Type</label>
+            <select name="first_crash_type">
+              {% for v in unique_vals['first_crash_type'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>🔄 Intersection Related?</label>
+            <select name="intersection_related_i">
+              {% for v in unique_vals['intersection_related_i'] %}<option>{{ v }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>🚗 Number of Vehicles</label>
+            <input type="number" name="num_units" min="1" max="10" value="2"/>
+          </div>
+
+          <div class="sec">🕐 Time Details</div>
+
+          <div class="fg">
+            <label>🕐 Hour (0–23)</label>
+            <input type="number" name="crash_hour" min="0" max="23" value="14"/>
+          </div>
+          <div class="fg">
+            <label>📅 Day of Week (1=Mon–7=Sun)</label>
+            <input type="number" name="crash_day_of_week" min="1" max="7" value="3"/>
+          </div>
+          <div class="fg" style="grid-column:1/-1">
+            <label>📆 Month (1–12)</label>
+            <input type="number" name="crash_month" min="1" max="12" value="6"/>
+          </div>
+
+        </div>
+        <button type="submit" class="btn-pred" id="submitBtn">🔮 Predict Risk Level</button>
+      </form>
+    </div>
+
+    <!-- RESULT PANEL -->
+    <div class="rpanel">
+      <div class="card-title">📋 Prediction Result</div>
+
+      <div id="waiting" class="waiting">
+        <div class="big">⚠️</div>
+        <p>Fill in the crash details<br>and click <strong>Predict</strong></p>
+      </div>
+
+      <div id="result" style="display:none">
+        <div id="verdictBox" class="verdict">
+          <div class="v-ico" id="vIco"></div>
+          <div class="v-lbl" id="vLbl"></div>
+          <div class="v-conf" id="vConf"></div>
+        </div>
+
+        <!-- Probability bars for all 3 classes -->
+        <div class="prow">
+          <div class="plbl"><span>🟢 Low Risk</span><span id="pLow">—</span></div>
+          <div class="pbg"><div class="pb pb-low" id="bLow" style="width:0%"></div></div>
+        </div>
+        <div class="prow">
+          <div class="plbl"><span>🟡 Medium Risk</span><span id="pMed">—</span></div>
+          <div class="pbg"><div class="pb pb-med" id="bMed" style="width:0%"></div></div>
+        </div>
+        <div class="prow">
+          <div class="plbl"><span>🔴 High Risk</span><span id="pHigh">—</span></div>
+          <div class="pbg"><div class="pb pb-high" id="bHigh" style="width:0%"></div></div>
+        </div>
+
+        <div class="factors">
+          <div class="f-title">⚡ Risk Factors Detected</div>
+          <div id="fList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.getElementById('pForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = '⏳ Predicting...';
+  btn.disabled = true;
+
+  const data = {};
+  new FormData(this).forEach((v,k) => data[k] = v);
+
+  try {
+    const res = await fetch('/api/predict', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const r = await res.json();
+
+    document.getElementById('waiting').style.display = 'none';
+    document.getElementById('result').style.display  = 'block';
+
+    // Verdict box
+    const lbl   = r.label;   // Low / Medium / High
+    const box   = document.getElementById('verdictBox');
+    const icoEl = document.getElementById('vIco');
+    const lblEl = document.getElementById('vLbl');
+    const confEl= document.getElementById('vConf');
+
+    if(lbl === 'Low'){
+      box.className = 'verdict v-low';
+      icoEl.textContent = '🟢';
+      lblEl.className   = 'v-lbl lbl-low';
+    } else if(lbl === 'Medium'){
+      box.className = 'verdict v-med';
+      icoEl.textContent = '🟡';
+      lblEl.className   = 'v-lbl lbl-med';
+    } else {
+      box.className = 'verdict v-high';
+      icoEl.textContent = '🔴';
+      lblEl.className   = 'v-lbl lbl-high';
+    }
+    lblEl.textContent  = lbl.toUpperCase() + ' RISK';
+    confEl.textContent = 'Confidence: ' + r.confidence + '%';
+
+    // Probability bars
+    const probs = r.probabilities;
+    document.getElementById('pLow').textContent  = (probs['Low']   || 0) + '%';
+    document.getElementById('pMed').textContent  = (probs['Medium']|| 0) + '%';
+    document.getElementById('pHigh').textContent = (probs['High']  || 0) + '%';
+    setTimeout(()=>{
+      document.getElementById('bLow').style.width  = (probs['Low']   || 0) + '%';
+      document.getElementById('bMed').style.width  = (probs['Medium']|| 0) + '%';
+      document.getElementById('bHigh').style.width = (probs['High']  || 0) + '%';
+    }, 60);
+
+    // Risk factors
+    const h = parseInt(data.crash_hour);
+    const factors = [];
+    if(h>=21||h<=5)  factors.push({t:'🌙 Night-time crash — higher risk',  c:'fi-r'});
+    if([7,8,9,16,17,18,19].includes(h)) factors.push({t:'🚦 Rush hour — heavy traffic', c:'fi-y'});
+    if(parseInt(data.num_units)>=3) factors.push({t:'🚗 Multiple vehicles involved', c:'fi-r'});
+    if(data.weather_condition && data.weather_condition.includes('RAIN'))
+      factors.push({t:'🌧️ Rain — slippery road conditions', c:'fi-y'});
+    if(data.roadway_surface_cond && (data.roadway_surface_cond.includes('WET')||
+       data.roadway_surface_cond.includes('ICE')))
+      factors.push({t:'🛣️ Wet/Icy road surface', c:'fi-r'});
+    if(h>=8&&h<=17&&h!=12)
+      factors.push({t:'☀️ Daytime — better visibility', c:'fi-g'});
+
+    document.getElementById('fList').innerHTML = factors.length
+      ? factors.map(f=>`<div class="fi ${f.c}">${f.t}</div>`).join('')
+      : '<div class="fi fi-g">✅ No major risk factors detected</div>';
+
+  } catch(err) {
+    alert('Prediction failed: ' + err.message);
+  }
+  btn.textContent = '🔮 Predict Risk Level';
+  btn.disabled = false;
+});
+</script>
+{% endblock %}
